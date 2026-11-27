@@ -14,15 +14,12 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.activity.ComponentActivity
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity(), SensorEventListener {
 
     private var sensorManager: SensorManager? = null
     private var accSensor: Sensor? = null
-    private val accMax = floatArrayOf(0f, 0f, 0f)
-    private var currentaccelaeration: Int? = null
+    private var gravityInitialized = false
     private lateinit var numberview: TextView
     private val gravity = FloatArray(3)
     private var prof: ImageView? = null
@@ -32,8 +29,6 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         val levelhandler = levelhandler(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.firstrun)
-
-        val currentacceleration = 0
 
         var currentlevel = levelhandler.loadLevel()
 
@@ -59,18 +54,12 @@ class MainActivity : ComponentActivity(), SensorEventListener {
             currentlevel = 1
             levelhandler.saveLevel(currentlevel)
 
-            lifecycleScope.launch {
-                progressbar.setProgress(100, true)
-                textfield.text = getString(R.string.introductiontwo)
-                progressbar.visibility = View.GONE
-                prof?.visibility = View.VISIBLE
-                waitingForLift = true
-                while (waitingForLift) {
-                    textfield.text = getString(R.string.tryit)
-                }
-                val levelonehandlerclass = Intent(this@MainActivity, levelonehandler::class.java)
-                startActivity(levelonehandlerclass)
-            }
+            progressbar.visibility = View.GONE
+            prof?.visibility = View.VISIBLE
+            textfield.text = getString(R.string.tryit)
+
+            gravityInitialized = false
+            waitingForLift = true
         }
     }
 
@@ -104,6 +93,13 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 
     override fun onSensorChanged(event: SensorEvent?) {
         if (event == null || event.sensor.type != Sensor.TYPE_ACCELEROMETER) return
+
+        if (!gravityInitialized) {
+            event.values.copyInto(gravity, endIndex = 3)
+            gravityInitialized = true
+            return
+        }
+
         val alpha = 0.8f
         for (i in 0..2) {
             gravity[i] = alpha * gravity[i] + (1 - alpha) * event.values[i]
@@ -126,12 +122,14 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         if (waitingForLift && up > 6f) {
             waitingForLift = false
             val px = 100 * resources.displayMetrics.density
-            prof?.let { upanddown(it, px) }
+            prof?.let {
+                upanddown(it, px) {
+                    startActivity(Intent(this@MainActivity, levellogic::class.java))
+                }
+            }
         }
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
     }
-
-
 }
