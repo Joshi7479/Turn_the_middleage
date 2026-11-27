@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Turn the Middleage</string>
+    <string name="not_supported">Ups, Entschuldigung, aber es sieht so aus, als würde dein Gerät nicht unterstützt...</string>
+    <string name="introduction">Hurra!!! Ich wusste, dass es funktioniert! Hallo, Fremder, ich bin so froh zu sehen, dass du meine Erfindung gefunden hast. Bitte warte kurz, ich verbinde mich.</string>
+    <string name="tryit">Probiere es aus: Hebe dein Gerät schnell nach oben!</string>
+    <string name="introductiontwo">Was kann meine Erfindung? Also mal davon abgesehen, dass wir über 500 Jahre auseinander sind?\nDu kannst uns helfen, in dem du das Gerät bewegst. Cool, oder?</string>
+    <string name="start">Start</string>
+</resources>

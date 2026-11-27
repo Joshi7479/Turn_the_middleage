@@ -53,4 +53,5 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
     implementation("androidx.datastore:datastore-preferences:1.3.0")
+    implementation("com.google.android.material:material:1.14.0")
 }

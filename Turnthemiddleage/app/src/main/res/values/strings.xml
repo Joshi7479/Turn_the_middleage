@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Turn the Middleage</string>
+    <string name="not_supported">Sorry, but it seems like your device isn’t supported...</string>
+    <string name="start">Start</string>
+    <string name="tryit">Try it: Move your device fast up!</string>
+    <string name="introductiontwo">What can my invention do? Other than making you able to communicate with me? (I live(d) 500 years ago)\nYou can help us, by moving the device. Cool, isn´t it?</string>
+    <string name="introduction">Yeaaah!!! I knew it would work! Hello, stranger, i am happy to see you have found my invention. Please wait, while I try to connect me with it.</string>
+</resources>

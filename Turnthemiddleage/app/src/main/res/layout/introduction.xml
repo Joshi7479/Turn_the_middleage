@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_marginBottom="5dp"
+    android:id="@+id/leveloneframelayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/gold_texture"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:id="@+id/numberview"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|right"/>
+
+    <ImageView
+        android:layout_width="350dp"
+        android:layout_gravity="center|bottom"
+        android:layout_height="600dp"
+        android:visibility="gone"
+        android:scaleType="centerCrop"
+        android:id="@+id/prof"
+        android:src="@drawable/crazy_professor"/>
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_gravity="center|bottom"
+        android:scaleType="centerCrop"
+        android:src="@drawable/background_white"
+        app:shapeAppearanceOverlay="@style/RoundedImageView" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textfield"
+        android:layout_gravity="bottom|center"
+        android:textSize="25dp"
+        android:text="@string/introduction"/>
+
+    <ProgressBar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:id="@+id/connectbar"/>
+
+
+
+
+</FrameLayout>

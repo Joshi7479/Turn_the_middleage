@@ -1,24 +1,47 @@
 package com.example.turnthemiddleage
 
+import android.content.Intent
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
+import android.view.View
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.DecelerateInterpolator
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.activity.ComponentActivity
-import kotlin.math.absoluteValue
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity(), SensorEventListener {
 
     private var sensorManager: SensorManager? = null
     private var accSensor: Sensor? = null
     private val accMax = floatArrayOf(0f, 0f, 0f)
+    private var currentaccelaeration: Int? = null
+    private lateinit var numberview: TextView
+    private val gravity = FloatArray(3)
+    private var prof: ImageView? = null
+    private var waitingForLift = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val levelhandler = levelhandler(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.firstrun)
+
+        val currentacceleration = 0
+
+        var currentlevel = levelhandler.loadLevel()
+
+        val startbutton = findViewById<Button>(R.id.start)
+
+        if (currentlevel != 0) {
+
+        }
 
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         accSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
@@ -26,6 +49,45 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         if (accSensor == null) {
             setContentView(R.layout.device_is_not_supported)
         }
+
+        startbutton.setOnClickListener {
+            setContentView(R.layout.introduction)
+            numberview = findViewById(R.id.numberview)
+            val progressbar = findViewById<ProgressBar>(R.id.connectbar)
+            val textfield = findViewById<TextView>(R.id.textfield)
+            prof = findViewById(R.id.prof)
+            currentlevel = 1
+            levelhandler.saveLevel(currentlevel)
+
+            lifecycleScope.launch {
+                progressbar.setProgress(100, true)
+                textfield.text = getString(R.string.introductiontwo)
+                progressbar.visibility = View.GONE
+                prof?.visibility = View.VISIBLE
+                waitingForLift = true
+                while (waitingForLift) {
+                    textfield.text = getString(R.string.tryit)
+                }
+                val levelonehandlerclass = Intent(this@MainActivity, levelonehandler::class.java)
+                startActivity(levelonehandlerclass)
+            }
+        }
+    }
+
+    private fun upanddown(view: View, height: Float = 300f, onEnd: (() -> Unit)? = null) {
+        view.animate()
+            .translationY(-height)
+            .setDuration(400)
+            .setInterpolator(DecelerateInterpolator())
+            .withEndAction {
+                view.animate()
+                    .translationY(0f)
+                    .setDuration(500)
+                    .setInterpolator(AccelerateInterpolator())
+                    .withEndAction { onEnd?.invoke() }
+                    .start()
+            }
+            .start()
     }
 
     override fun onResume() {
@@ -42,12 +104,34 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 
     override fun onSensorChanged(event: SensorEvent?) {
         if (event == null || event.sensor.type != Sensor.TYPE_ACCELEROMETER) return
+        val alpha = 0.8f
+        for (i in 0..2) {
+            gravity[i] = alpha * gravity[i] + (1 - alpha) * event.values[i]
+        }
 
-        for (i < 0) {
+        val lx = event.values[0] - gravity[0]
+        val ly = event.values[1] - gravity[1]
+        val lz = event.values[2] - gravity[2]
 
+        val gNorm = kotlin.math.sqrt(
+            gravity[0] * gravity[0] + gravity[1] * gravity[1] + gravity[2] * gravity[2]
+        )
+        if (gNorm < 1f) return
+        val up = (lx * gravity[0] + ly * gravity[1] + lz * gravity[2]) / gNorm
+
+        if (::numberview.isInitialized) {
+            numberview.text = "%.1f".format(up)
+        }
+
+        if (waitingForLift && up > 6f) {
+            waitingForLift = false
+            val px = 100 * resources.displayMetrics.density
+            prof?.let { upanddown(it, px) }
         }
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
     }
+
+
 }
