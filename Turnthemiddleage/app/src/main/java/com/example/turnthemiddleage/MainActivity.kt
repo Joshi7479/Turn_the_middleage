@@ -51,9 +51,6 @@ class MainActivity : ComponentActivity(), SensorEventListener {
             val progressbar = findViewById<ProgressBar>(R.id.connectbar)
             val textfield = findViewById<TextView>(R.id.textfield)
             prof = findViewById(R.id.prof)
-            currentlevel = 1
-            levelhandler.saveLevel(currentlevel)
-
             progressbar.visibility = View.GONE
             prof?.visibility = View.VISIBLE
             textfield.text = getString(R.string.tryit)

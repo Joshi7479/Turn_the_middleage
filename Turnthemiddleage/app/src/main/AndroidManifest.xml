@@ -25,6 +25,7 @@
         </activity>
         <activity
             android:name=".levellogic"
+            android:screenOrientation="portrait"
             android:exported="false" />
     </application>
 
