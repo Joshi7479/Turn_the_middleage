@@ -6,7 +6,7 @@
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:src="@drawable/gold_texture"
+        android:src="@drawable/background"
         android:scaleType="centerCrop"/>
 
     <LinearLayout
@@ -19,6 +19,8 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
             android:text="@string/youloose"/>
 
         <Button

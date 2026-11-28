@@ -1,12 +1,19 @@
 package com.example.turnthemiddleage
 
+import android.app.Activity
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Rect
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.SurfaceView
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 
 class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(context, attrs), Runnable {
     private var thread: Thread? = null
@@ -18,7 +25,8 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
 
     private var playerX = 200f
     private var playerY = 0f
-    private var playerSize = 100f
+    private val playerWidth = 100f
+    private val playerHeight = 200f
     private var velocityY = 0f
     private val gravity = 1.5f
     private val jumpStrength = -35f
@@ -26,11 +34,15 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
     private var failed = false
     var onGoalReached: (() -> Unit)? = null
     private var goalReached = false
+    var onFailed: (() -> Unit)? = null
+    private var failReported = false
 
     var moveLeft = false
     var moveRight = false
 
+    private var screenHeight = 2000f
     private var groundY = 2000f
+
     private var platforms = listOf(
         RectF(600f, 1650f, 950f, 1700f),
         RectF(100f, 1200f, 450f, 1250f),
@@ -40,73 +52,105 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
     )
     private var goalrectF = RectF(3950f, groundY - 100f, 4000f, groundY)
 
+    private val backgroundbitmap: Bitmap = BitmapFactory.decodeResource(resources, R.drawable.background)
+    private val backgroundRect = Rect()
+    private val playerbitmap: Bitmap = BitmapFactory.decodeResource(resources, R.drawable.player)
+    private val playerRect = RectF()
+
+    init {
+        enableFullscreen()
+    }
+
+    private fun enableFullscreen() {
+        val activity = context as? Activity ?: return
+        val window = activity.window
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        val controller = WindowInsetsControllerCompat(window, window.decorView)
+        controller.hide(WindowInsetsCompat.Type.systemBars())
+        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        screenHeight = h.toFloat()
+        groundY = screenHeight
+        goalrectF.set(3950f, groundY - 100f, 4000f, groundY)
+    }
+
     override fun run() {
         while (isPlaying) {
             update()
             draw()
-            Thread.sleep(16)
+            Thread.sleep(1)
         }
     }
 
     private fun update() {
         if (moveLeft) playerX -= 12f
         if (moveRight) playerX += 12f
-        playerX = playerX.coerceIn(0f, levelWidth - playerSize)
+        playerX = playerX.coerceIn(0f, levelWidth - playerWidth)
 
         velocityY += gravity
         playerY += velocityY
 
-        if (playerY + playerSize >= groundY) {
-            playerY = groundY - playerSize
+        if (playerY + playerHeight >= groundY) {
+            playerY = groundY - playerHeight
             velocityY = 0f
             failed = true
         }
 
-        val playerRect = RectF(playerX, playerY, playerX + playerSize, playerY + playerSize)
-
+        isGrounded = false
+        updatePlayerRect()
         for (plat in platforms) {
             if (velocityY > 0 && RectF.intersects(playerRect, plat)) {
-                if (playerY + playerSize - velocityY <= plat.top) {
-                    playerY = plat.top - playerSize
+                if (playerY + playerHeight - velocityY <= plat.top) {
+                    playerY = plat.top - playerHeight
                     velocityY = 0f
                     isGrounded = true
                 }
             }
         }
+        updatePlayerRect()
+
         if (width > 0) {
             val maxCameraX = (levelWidth - width).coerceAtLeast(0f)
-            cameraX = (playerX + playerSize / 2f - width / 2f).coerceIn(0f, maxCameraX)
+            cameraX = (playerX + playerWidth / 2f - width / 2f).coerceIn(0f, maxCameraX)
         }
         if (!goalReached && RectF.intersects(playerRect, goalrectF)) {
             goalReached = true
             onGoalReached?.invoke()
         }
-        if (failed) {
-            val levellogic = levellogic()
-            levellogic.loadview(2)
+        if (failed && !goalReached && !failReported) {
+            failReported = true
+            onFailed?.invoke()
         }
+        moveLeft = false
+        moveRight = false
+    }
+
+    private fun updatePlayerRect() {
+        playerRect.set(playerX, playerY, playerX + playerWidth, playerY + playerHeight)
     }
 
     private fun draw() {
         if (holder.surface.isValid) {
             val canvas: Canvas = holder.lockCanvas()
-            canvas.drawColor(Color.parseColor("#87CEEB"))
+
             canvas.save()
             canvas.translate(-cameraX, 0f)
 
-            paint.color = Color.parseColor("#00F0F0")
-            canvas.drawRect(0f, groundY, levelWidth, height.toFloat(), paint)
+            backgroundRect.set(0, 0, levelWidth.toInt(), canvas.height)
+            canvas.drawBitmap(backgroundbitmap, null, backgroundRect, null)
 
             paint.color = Color.DKGRAY
             for (plat in platforms) {
                 canvas.drawRect(plat, paint)
             }
 
-            paint.color = Color.BLUE
+            paint.color = Color.TRANSPARENT
             canvas.drawRect(goalrectF, paint)
 
-            paint.color = Color.RED
-            canvas.drawRect(playerX, playerY, playerX + playerSize, playerY + playerSize, paint)
+            canvas.drawBitmap(playerbitmap, null, playerRect, null)
 
             canvas.restore()
             holder.unlockCanvasAndPost(canvas)
@@ -133,11 +177,11 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
     }
 
     fun moveRight() {
-        playerX += 12
+        moveRight = true
     }
 
     fun moveLeft() {
-        playerX -= 12
+        moveLeft = true
     }
 
     fun loadLevel(newPlatforms: List<RectF>) {

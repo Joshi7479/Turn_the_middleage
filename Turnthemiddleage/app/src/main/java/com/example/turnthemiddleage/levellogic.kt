@@ -1,43 +1,59 @@
 package com.example.turnthemiddleage
 
+import android.graphics.RectF
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
 import android.view.Surface
-import androidx.activity.ComponentActivity
-import android.graphics.RectF
 import android.widget.Button
+import android.widget.TextView
+import androidx.activity.ComponentActivity
 
 class levellogic : ComponentActivity(), SensorEventListener {
 
-    private lateinit var gameView: GameView
+    private var gameView: GameView? = null
     private var sensorManager: SensorManager? = null
     private var accSensor: Sensor? = null
     private val gravity = FloatArray(3)
     private var gravityInitialized = false
-    private var gyrSensor: Sensor? = null
-    private var gyrListener: SensorEventListener? = null
     private var tiltDirection = 0
     private val tiltOn = 20f
-    private val tiltOff = 10f
-    private var level: Int? = 1
     private lateinit var handler: levelhandler
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.gameview)
-        handler = levelhandler(this) {loadview(1)}
+
+        handler = levelhandler(this) { loadview(1) }
         var currentlevel = handler.loadLevel()
 
+        if (currentlevel > 3) {
+            setContentView(R.layout.everyleveldone)
+            val restartbutton = findViewById<Button>(R.id.restart)
+            restartbutton.setOnClickListener {
+                handler.saveLevel(1)
+                recreate()
+            }
+            return
+        }
+
+        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
+        accSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        if (accSensor == null) {
+            setContentView(R.layout.device_is_not_supported)
+            return
+        }
+        setContentView(R.layout.gameview)
+        val levelview = findViewById<TextView>(R.id.levelview)
         gameView = findViewById(R.id.gameView)
-        gameView.onGoalReached = { handler.leveldone(true) }
 
-        gameView.pause()
+        gameView?.onGoalReached = { handler.leveldone(true) }
+        gameView?.onFailed = { loadview(2) }
+        gameView?.pause()
 
-        if (currentlevel == 1) {
-            var currentlevelplatforms = listOf(
+        val currentlevelplatforms = when (currentlevel) {
+            1 -> listOf(
                 RectF(600f, 1650f, 950f, 1700f),
                 RectF(100f, 1200f, 450f, 1250f),
                 RectF(1200f, 1500f, 1600f, 1550f),
@@ -45,9 +61,7 @@ class levellogic : ComponentActivity(), SensorEventListener {
                 RectF(2500f, 1650f, 2900f, 1700f),
                 RectF(3000f, 1700f, 3500f, 1750f)
             )
-            gameView.loadLevel(currentlevelplatforms)
-        } else if (currentlevel == 2) {
-            var currentlevelplatforms = listOf(
+            2 -> listOf(
                 RectF(600f, 1650f, 950f, 1700f),
                 RectF(100f, 1200f, 450f, 1250f),
                 RectF(1200f, 1500f, 1600f, 1550f),
@@ -55,9 +69,7 @@ class levellogic : ComponentActivity(), SensorEventListener {
                 RectF(2500f, 1650f, 2900f, 1700f),
                 RectF(3000f, 1700f, 3500f, 1750f)
             )
-            gameView.loadLevel(currentlevelplatforms)
-        } else if (currentlevel == 3) {
-            var currentlevelplatforms = listOf(
+            else -> listOf(
                 RectF(600f, 1650f, 950f, 1700f),
                 RectF(100f, 1200f, 450f, 1250f),
                 RectF(1200f, 1500f, 1600f, 1550f),
@@ -65,43 +77,32 @@ class levellogic : ComponentActivity(), SensorEventListener {
                 RectF(2500f, 1650f, 2900f, 1700f),
                 RectF(3000f, 1700f, 3500f, 1750f)
             )
-            gameView.loadLevel(currentlevelplatforms)
-        } else {
-            setContentView(R.layout.everyleveldone)
-            val restartbutton = findViewById<Button>(R.id.restart)
-            restartbutton.setOnClickListener {
-                currentlevel = 1
-                handler.saveLevel(currentlevel)
-                recreate()
-            }
         }
 
-        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
-        gyrSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
-        accSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-
-        if (accSensor == null) {
-            setContentView(R.layout.device_is_not_supported)
-        }
+        gameView?.loadLevel(currentlevelplatforms)
+        levelview.text = currentlevel.toString()
     }
 
     override fun onResume() {
         super.onResume()
-        gameView.resume()
-        gravityInitialized = false
-        tiltDirection = 0
-        accSensor?.let { sensor ->
-            sensorManager?.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME)
+        gameView?.let { gv ->
+            gv.resume()
+            gravityInitialized = false
+            tiltDirection = 0
+            accSensor?.let { sensor ->
+                sensorManager?.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME)
+            }
         }
     }
 
     override fun onPause() {
         super.onPause()
         sensorManager?.unregisterListener(this)
-        gameView.pause()
+        gameView?.pause()
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
+        val gv = gameView ?: return
         if (event == null || event.sensor.type != Sensor.TYPE_ACCELEROMETER) return
 
         if (!gravityInitialized) {
@@ -127,10 +128,10 @@ class levellogic : ComponentActivity(), SensorEventListener {
         val up = (lx * gravity[0] + ly * gravity[1] + lz * gravity[2]) / gNorm
 
         if (up > 6f) {
-            gameView.jump()
+            gv.jump()
         }
 
-        val screenX = when (gameView.display?.rotation) {
+        val screenX = when (gv.display?.rotation) {
             Surface.ROTATION_90 -> -gravity[1]
             Surface.ROTATION_180 -> -gravity[0]
             Surface.ROTATION_270 -> gravity[1]
@@ -141,38 +142,37 @@ class levellogic : ComponentActivity(), SensorEventListener {
         val tilt = Math.toDegrees(kotlin.math.asin(sinTilt).toDouble()).toFloat()
 
         if (tilt > tiltOn) {
-            gameView.moveRight()
+            gv.moveRight()
         } else if (tilt < -tiltOn) {
-            gameView.moveLeft()
+            gv.moveLeft()
         }
     }
 
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-    }
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
     fun loadview(viewnumber: Int) {
-        var currentlevel = handler.loadLevel()
-        if (viewnumber == 1) {
-            runOnUiThread {
-                gameView.pause()
-                setContentView(R.layout.levelwon)
-                val nextlevelbutton = findViewById<Button>(R.id.newlevel)
-                nextlevelbutton.setOnClickListener {
-                    recreate()
+        val currentlevel = handler.loadLevel()
+        runOnUiThread {
+            gameView?.pause()
+            gameView = null
+
+            when (viewnumber) {
+                1 -> {
+                    setContentView(R.layout.levelwon)
+                    findViewById<Button>(R.id.newlevel).setOnClickListener {
+                        recreate()
+                    }
+                }
+                2 -> {
+                    setContentView(R.layout.youloose)
+                    findViewById<Button>(R.id.retry).setOnClickListener {
+                        recreate()
+                    }
+                }
+                else -> {
+                    handler.saveLevel(currentlevel)
                 }
             }
-        } else if (viewnumber == 2) {
-            runOnUiThread {
-                gameView.pause()
-                setContentView(R.layout.youloose)
-                val retrybutton = findViewById<Button>(R.id.retry)
-                retrybutton.setOnClickListener {
-                    recreate()
-                }
-            }
-        } else {
-            gameView.pause()
-            handler.saveLevel(currentlevel)
         }
     }
 }

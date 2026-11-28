@@ -30,9 +30,13 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val levelhandler = levelhandler(this)
-        levelhandler.saveLevel(1)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.firstrun)
+
+        val controller = androidx.core.view.WindowInsetsControllerCompat(window, window.decorView)
+        controller.hide(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+        controller.systemBarsBehavior = androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+
 
         var currentlevel = levelhandler.loadLevel()
 
