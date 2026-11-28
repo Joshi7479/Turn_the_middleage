@@ -14,6 +14,9 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.activity.ComponentActivity
+import androidx.annotation.ContentView
+import androidx.constraintlayout.widget.ConstraintSet
+import kotlin.time.Duration.Companion.seconds
 
 class MainActivity : ComponentActivity(), SensorEventListener {
 
@@ -27,6 +30,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val levelhandler = levelhandler(this)
+        levelhandler.saveLevel(1)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.firstrun)
 
@@ -35,7 +39,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         val startbutton = findViewById<Button>(R.id.start)
 
         if (currentlevel != 0) {
-
+            startActivity(Intent(this@MainActivity, levellogic::class.java))
         }
 
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
@@ -47,16 +51,19 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 
         startbutton.setOnClickListener {
             setContentView(R.layout.introduction)
-            numberview = findViewById(R.id.numberview)
             val progressbar = findViewById<ProgressBar>(R.id.connectbar)
             val textfield = findViewById<TextView>(R.id.textfield)
-            prof = findViewById(R.id.prof)
-            progressbar.visibility = View.GONE
-            prof?.visibility = View.VISIBLE
-            textfield.text = getString(R.string.tryit)
-
-            gravityInitialized = false
-            waitingForLift = true
+            textfield.setText(R.string.introduction)
+            textfield.setOnClickListener {
+                textfield.setText(R.string.introductiontwo)
+                Thread.sleep(2000)
+                prof = findViewById(R.id.prof)
+                progressbar.visibility = View.GONE
+                prof?.visibility = View.VISIBLE
+                textfield.text = getString(R.string.tryit)
+                gravityInitialized = false
+                waitingForLift = true
+            }
         }
     }
 
@@ -129,4 +136,5 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
     }
+
 }

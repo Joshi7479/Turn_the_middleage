@@ -3,9 +3,10 @@ package com.example.turnthemiddleage
 import android.content.Context
 import android.content.SharedPreferences
 
-
-class levelhandler(context: Context) {
-
+class levelhandler(
+    context: Context,
+    private val onLevelWon: () -> Unit = {}
+) {
     private val preferences: SharedPreferences =
         context.getSharedPreferences("level", Context.MODE_PRIVATE)
 
@@ -19,7 +20,16 @@ class levelhandler(context: Context) {
         return if (level == null && savedLevel != 0) {
             savedLevel
         } else {
-            level ?: 1
+            level ?: 0
+        }
+    }
+
+    fun leveldone(win: Boolean) {
+        if (win) {
+            saveLevel(loadLevel() + 1)
+            onLevelWon()
+        } else {
+
         }
     }
 }

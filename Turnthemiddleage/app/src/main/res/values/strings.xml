@@ -4,7 +4,13 @@
     <string name="start">Start</string>
     <string name="tryit">Try it: Move your device fast up!</string>
     <string name="lockorientation">\n\n\n\nPlease turn of auto-rotate before playing!</string>
-    <string name="commingsoon">Under construction...</string>
+    <string name="commingsoon">Under construction.\nFor more information and Updates visit me on GitHub\ngithub.com/Joshi7479 </string>
     <string name="introductiontwo">What can my invention do? Other than making you able to communicate with me? (I live(d) 500 years ago)\nYou can help us, by moving the device. Cool, isn´t it?</string>
+    <string name="youwon">You won!</string>
+    <string name="nextlevel">Start next Level</string>
+    <string name="newlevels">New levels are coming soon.</string>
+    <string name="restart">Restart from level 1</string>
+    <string name="retry">Try again</string>
+    <string name="youloose">Never mind... You´ve lost!</string>
     <string name="introduction">Yeaaah!!! I knew it would work! Hello, stranger, I am happy to see you have found my invention. Please wait, while I try to connect me with it.</string>
 </resources>

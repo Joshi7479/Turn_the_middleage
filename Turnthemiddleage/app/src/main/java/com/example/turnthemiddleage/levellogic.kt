@@ -7,9 +7,8 @@ import android.hardware.SensorManager
 import android.os.Bundle
 import android.view.Surface
 import androidx.activity.ComponentActivity
-import android.content.Context
-import android.content.SharedPreferences
 import android.graphics.RectF
+import android.widget.Button
 
 class levellogic : ComponentActivity(), SensorEventListener {
 
@@ -24,14 +23,16 @@ class levellogic : ComponentActivity(), SensorEventListener {
     private val tiltOn = 20f
     private val tiltOff = 10f
     private var level: Int? = 1
+    private lateinit var handler: levelhandler
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.levelone)
-        val levelhandler = levelhandler(this)
-        var currentlevel = levelhandler.loadLevel()
+        setContentView(R.layout.gameview)
+        handler = levelhandler(this) {loadview(1)}
+        var currentlevel = handler.loadLevel()
 
         gameView = findViewById(R.id.gameView)
+        gameView.onGoalReached = { handler.leveldone(true) }
 
         gameView.pause()
 
@@ -41,22 +42,40 @@ class levellogic : ComponentActivity(), SensorEventListener {
                 RectF(100f, 1200f, 450f, 1250f),
                 RectF(1200f, 1500f, 1600f, 1550f),
                 RectF(1800f, 1200f, 2200f, 1250f),
-                RectF(2500f, 1650f, 2900f, 1700f)
+                RectF(2500f, 1650f, 2900f, 1700f),
+                RectF(3000f, 1700f, 3500f, 1750f)
             )
             gameView.loadLevel(currentlevelplatforms)
-        } else if (currentlevel == 2){
+        } else if (currentlevel == 2) {
             var currentlevelplatforms = listOf(
                 RectF(600f, 1650f, 950f, 1700f),
                 RectF(100f, 1200f, 450f, 1250f),
+                RectF(1200f, 1500f, 1600f, 1550f),
+                RectF(2000f, 1500f, 2200f, 1550f),
+                RectF(2500f, 1650f, 2900f, 1700f),
+                RectF(3000f, 1700f, 3500f, 1750f)
+            )
+            gameView.loadLevel(currentlevelplatforms)
+        } else if (currentlevel == 3) {
+            var currentlevelplatforms = listOf(
+                RectF(600f, 1650f, 950f, 1700f),
+                RectF(100f, 1200f, 450f, 1250f),
+                RectF(1200f, 1500f, 1600f, 1550f),
+                RectF(1800f, 1200f, 2200f, 1250f),
+                RectF(2500f, 1650f, 2900f, 1700f),
+                RectF(3000f, 1700f, 3500f, 1750f)
             )
             gameView.loadLevel(currentlevelplatforms)
         } else {
-            setContentView(R.layout.comming_soon)
+            setContentView(R.layout.everyleveldone)
+            val restartbutton = findViewById<Button>(R.id.restart)
+            restartbutton.setOnClickListener {
+                currentlevel = 1
+                handler.saveLevel(currentlevel)
+                recreate()
+            }
         }
 
-        gameView.resume()
-
-        levelhandler.saveLevel(2)
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         gyrSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
         accSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
@@ -129,5 +148,31 @@ class levellogic : ComponentActivity(), SensorEventListener {
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+    }
+
+    fun loadview(viewnumber: Int) {
+        var currentlevel = handler.loadLevel()
+        if (viewnumber == 1) {
+            runOnUiThread {
+                gameView.pause()
+                setContentView(R.layout.levelwon)
+                val nextlevelbutton = findViewById<Button>(R.id.newlevel)
+                nextlevelbutton.setOnClickListener {
+                    recreate()
+                }
+            }
+        } else if (viewnumber == 2) {
+            runOnUiThread {
+                gameView.pause()
+                setContentView(R.layout.youloose)
+                val retrybutton = findViewById<Button>(R.id.retry)
+                retrybutton.setOnClickListener {
+                    recreate()
+                }
+            }
+        } else {
+            gameView.pause()
+            handler.saveLevel(currentlevel)
+        }
     }
 }

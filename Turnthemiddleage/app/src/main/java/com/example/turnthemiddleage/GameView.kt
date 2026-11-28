@@ -23,6 +23,9 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
     private val gravity = 1.5f
     private val jumpStrength = -35f
     private var isGrounded = false
+    private var failed = false
+    var onGoalReached: (() -> Unit)? = null
+    private var goalReached = false
 
     var moveLeft = false
     var moveRight = false
@@ -35,6 +38,7 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
         RectF(1800f, 1200f, 2200f, 1250f),
         RectF(2500f, 1650f, 2900f, 1700f)
     )
+    private var goalrectF = RectF(3950f, groundY - 100f, 4000f, groundY)
 
     override fun run() {
         while (isPlaying) {
@@ -55,7 +59,7 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
         if (playerY + playerSize >= groundY) {
             playerY = groundY - playerSize
             velocityY = 0f
-            isGrounded = true
+            failed = true
         }
 
         val playerRect = RectF(playerX, playerY, playerX + playerSize, playerY + playerSize)
@@ -72,6 +76,14 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
         if (width > 0) {
             val maxCameraX = (levelWidth - width).coerceAtLeast(0f)
             cameraX = (playerX + playerSize / 2f - width / 2f).coerceIn(0f, maxCameraX)
+        }
+        if (!goalReached && RectF.intersects(playerRect, goalrectF)) {
+            goalReached = true
+            onGoalReached?.invoke()
+        }
+        if (failed) {
+            val levellogic = levellogic()
+            levellogic.loadview(2)
         }
     }
 
@@ -90,6 +102,9 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
                 canvas.drawRect(plat, paint)
             }
 
+            paint.color = Color.BLUE
+            canvas.drawRect(goalrectF, paint)
+
             paint.color = Color.RED
             canvas.drawRect(playerX, playerY, playerX + playerSize, playerY + playerSize, paint)
 
@@ -106,6 +121,7 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
     }
 
     fun resume() {
+        if (isPlaying) return
         isPlaying = true
         thread = Thread(this)
         thread?.start()

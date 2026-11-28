@@ -5,7 +5,13 @@
     <string name="introduction">Hurra!!! Ich wusste, dass es funktioniert! Hallo, Fremder, ich bin so froh zu sehen, dass du meine Erfindung gefunden hast. Bitte warte kurz, ich verbinde mich.</string>
     <string name="tryit">Probiere es aus: Hebe dein Gerät schnell nach oben!</string>
     <string name="lockorientation">\n\n\n\nBitte automatisches Drehen deaktivieren!</string>
-    <string name="commingsoon">Hier gibt es nichts zu sehen...</string>
+    <string name="commingsoon">Hier gibt es nichts zu sehen...\nFür mehr Informationen und Updates, besuche mich auf GitHub:\ngithub.com/Joshi7479 </string>
     <string name="introductiontwo">Was kann meine Erfindung? Also mal davon abgesehen, dass wir über 500 Jahre auseinander sind?\nDu kannst uns helfen, in dem du das Gerät bewegst. Cool, oder?</string>
     <string name="start">Start</string>
+    <string name="youwon">Du hast gewonnen!</string>
+    <string name="newlevels">Neue Level kommen bald.</string>
+    <string name="restart">Starte von vorne</string>
+    <string name="retry">Versuche es erneut</string>
+    <string name="youloose">Upsi, du hast verloren!</string>
+    <string name="nextlevel">Nächstes Level starten</string>
 </resources>
